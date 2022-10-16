@@ -1,0 +1,64 @@
+{
+	"name": "fendt_data_partitioned",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureBlobStorage1",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": "fendt_data_partitioned.json",
+				"container": "lgineko"
+			}
+		},
+		"schema": {
+			"type": "object",
+			"properties": {
+				"datas": {
+					"type": "array",
+					"items": {
+						"type": "object",
+						"properties": {
+							"unit": {
+								"type": "string"
+							},
+							"count": {
+								"type": "string"
+							},
+							"values": {
+								"type": "array",
+								"items": {
+									"type": "object",
+									"properties": {
+										"value": {
+											"type": "integer"
+										},
+										"timestamp": {
+											"type": "string"
+										}
+									}
+								}
+							},
+							"signalGroup": {
+								"type": "string"
+							},
+							"type": {
+								"type": "string"
+							}
+						}
+					}
+				},
+				"count": {
+					"type": "string"
+				},
+				"machineId": {
+					"type": "string"
+				}
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

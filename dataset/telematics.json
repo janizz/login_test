@@ -1,0 +1,101 @@
+{
+	"name": "telematics",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureBlobStorage1",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": "telematics_dump.csv",
+				"container": "lgineko"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": [
+			{
+				"name": "DateTime",
+				"type": "String"
+			},
+			{
+				"name": "SerialNumber",
+				"type": "String"
+			},
+			{
+				"name": "GpsLongitude",
+				"type": "String"
+			},
+			{
+				"name": "GpsLatitude",
+				"type": "String"
+			},
+			{
+				"name": "TotalWorkingHours",
+				"type": "String"
+			},
+			{
+				"name": "Engine_rpm",
+				"type": "String"
+			},
+			{
+				"name": "EngineLoad",
+				"type": "String"
+			},
+			{
+				"name": "FuelConsumption_l_h",
+				"type": "String"
+			},
+			{
+				"name": "SpeedGearbox_km_h",
+				"type": "String"
+			},
+			{
+				"name": "SpeedRadar_km_h",
+				"type": "String"
+			},
+			{
+				"name": "TempCoolant_C",
+				"type": "String"
+			},
+			{
+				"name": "PtoFront_rpm",
+				"type": "String"
+			},
+			{
+				"name": "PtoRear_rpm",
+				"type": "String"
+			},
+			{
+				"name": "GearShift",
+				"type": "String"
+			},
+			{
+				"name": "TempAmbient_C",
+				"type": "String"
+			},
+			{
+				"name": "ParkingBreakStatus",
+				"type": "String"
+			},
+			{
+				"name": "DifferentialLockStatus",
+				"type": "String"
+			},
+			{
+				"name": "AllWheelDriveStatus",
+				"type": "String"
+			},
+			{
+				"name": "CreeperStatus",
+				"type": "String"
+			}
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

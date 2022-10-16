@@ -1,0 +1,59 @@
+{
+	"name": "wialon",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureBlobStorage1",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": "wialon_dump.csv.gz",
+				"container": "lgineko"
+			},
+			"columnDelimiter": ",",
+			"compressionCodec": "gzip",
+			"compressionLevel": "Fastest",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": [
+			{
+				"name": "unit_id",
+				"type": "String"
+			},
+			{
+				"name": "dateTime",
+				"type": "String"
+			},
+			{
+				"name": "driverId",
+				"type": "String"
+			},
+			{
+				"name": "gpsLongitude",
+				"type": "String"
+			},
+			{
+				"name": "gpsLatitude",
+				"type": "String"
+			},
+			{
+				"name": "speed",
+				"type": "String"
+			},
+			{
+				"name": "altitude",
+				"type": "String"
+			},
+			{
+				"name": "course",
+				"type": "String"
+			}
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

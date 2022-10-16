@@ -1,0 +1,9 @@
+{
+	"name": "LoginEko",
+	"location": "eastus",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "25e2e7a9-be67-4b07-bcad-a80df3e966a1",
+		"tenantId": "97491050-a3e6-4eb8-ad43-f7e2932c7644"
+	}
+}

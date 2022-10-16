@@ -1,0 +1,44 @@
+{
+	"name": "fendt_gps",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureBlobStorage1",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": "fendt_gps.json",
+				"container": "lgineko"
+			}
+		},
+		"schema": {
+			"type": "object",
+			"properties": {
+				"route": {
+					"type": "array",
+					"items": {
+						"type": "object",
+						"properties": {
+							"lng": {
+								"type": "number"
+							},
+							"lat": {
+								"type": "number"
+							},
+							"t": {
+								"type": "string"
+							}
+						}
+					}
+				},
+				"machineId": {
+					"type": "string"
+				}
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}
