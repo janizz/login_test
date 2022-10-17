@@ -59,9 +59,6 @@
 					"name": "cast1"
 				},
 				{
-					"name": "wialonOut"
-				},
-				{
 					"name": "tstpDateTime"
 				},
 				{
@@ -90,6 +87,9 @@
 				},
 				{
 					"name": "cast3"
+				},
+				{
+					"name": "wialonOut"
 				}
 			],
 			"scriptLines": [
@@ -183,17 +183,6 @@
 				"          dateTime as timestamp",
 				"     ),",
 				"     errors: true) ~> cast1",
-				"cast1 select(mapColumn(",
-				"          Timestamp = dateTime,",
-				"          VehicleId = unit_id,",
-				"          GpsLongitude = gpsLongitude,",
-				"          GpsLatitude = gpsLatitude,",
-				"          speed,",
-				"          altitude,",
-				"          course",
-				"     ),",
-				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> wialonOut",
 				"values derive(DateTime = toTimestamp(toInteger(timestamp)*1000l)) ~> tstpDateTime",
 				"fendtDataNoGps pivot(groupBy(Timestamp,",
 				"          VehicleId,",
@@ -274,6 +263,18 @@
 				"          latitude as string",
 				"     ),",
 				"     errors: true) ~> cast3",
+				"cast1 select(mapColumn(",
+				"          VehicleId = unit_id,",
+				"          Timestamp = dateTime,",
+				"          driverId,",
+				"          GpsLongitude = gpsLongitude,",
+				"          GpsLatitude = gpsLatitude,",
+				"          speed,",
+				"          altitude,",
+				"          course",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> wialonOut",
 				"union1 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     format: 'parquet',",
