@@ -36,7 +36,7 @@
 			"sinks": [
 				{
 					"dataset": {
-						"referenceName": "AzureSqlTable1",
+						"referenceName": "ConsolidatedTable",
 						"type": "DatasetReference"
 					},
 					"name": "SQLDB"
