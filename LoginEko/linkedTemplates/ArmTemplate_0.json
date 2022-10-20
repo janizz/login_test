@@ -10,6 +10,10 @@
 		"AzureBlobStorage1_connectionString": {
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'AzureBlobStorage1'"
+		},
+		"AzureSqlDatabase1_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'AzureSqlDatabase1'"
 		}
 	},
 	"variables": {
@@ -25,6 +29,39 @@
 				"type": "AzureBlobStorage",
 				"typeProperties": {
 					"connectionString": "[parameters('AzureBlobStorage1_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureSqlDatabase1')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDatabase",
+				"typeProperties": {
+					"connectionString": "[parameters('AzureSqlDatabase1_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/integrationRuntimeTest')]",
+			"type": "Microsoft.DataFactory/factories/integrationRuntimes",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "Managed",
+				"typeProperties": {
+					"computeProperties": {
+						"location": "North Europe",
+						"dataFlowProperties": {
+							"computeType": "General",
+							"coreCount": 16,
+							"timeToLive": 10,
+							"cleanup": false
+						}
+					}
 				}
 			},
 			"dependsOn": []
@@ -338,6 +375,27 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/ConsolidatedTable')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureSqlDatabase1",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "telemetricsConsolidated"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureSqlDatabase1')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/telemetry_combine')]",
 			"type": "Microsoft.DataFactory/factories/dataflows",
 			"apiVersion": "2018-06-01",
@@ -377,15 +435,15 @@
 					"sinks": [
 						{
 							"dataset": {
-								"referenceName": "telem_combined",
+								"referenceName": "ConsolidatedTable",
 								"type": "DatasetReference"
 							},
-							"name": "expparquet"
+							"name": "SQLDB"
 						}
 					],
 					"transformations": [
 						{
-							"name": "union1"
+							"name": "unionAllTelem"
 						},
 						{
 							"name": "filter1"
@@ -395,9 +453,6 @@
 						},
 						{
 							"name": "values"
-						},
-						{
-							"name": "cast1"
 						},
 						{
 							"name": "tstpDateTime"
@@ -415,9 +470,6 @@
 							"name": "telematicsOut"
 						},
 						{
-							"name": "cast2"
-						},
-						{
 							"name": "joinFendt"
 						},
 						{
@@ -427,7 +479,13 @@
 							"name": "fendtOut"
 						},
 						{
-							"name": "cast3"
+							"name": "selectWialonInter"
+						},
+						{
+							"name": "derivedColumn1"
+						},
+						{
+							"name": "derivedColumn2"
 						},
 						{
 							"name": "wialonOut"
@@ -437,21 +495,21 @@
 						"source(output(",
 						"          DateTime as string,",
 						"          SerialNumber as string,",
-						"          GpsLongitude as string,",
-						"          GpsLatitude as string,",
-						"          TotalWorkingHours as string,",
-						"          Engine_rpm as string,",
-						"          EngineLoad as string,",
-						"          FuelConsumption_l_h as string,",
-						"          SpeedGearbox_km_h as string,",
-						"          SpeedRadar_km_h as string,",
-						"          TempCoolant_C as string,",
-						"          PtoFront_rpm as string,",
-						"          PtoRear_rpm as string,",
+						"          GpsLongitude as double,",
+						"          GpsLatitude as double,",
+						"          TotalWorkingHours as double,",
+						"          Engine_rpm as short,",
+						"          EngineLoad as short,",
+						"          FuelConsumption_l_h as double,",
+						"          SpeedGearbox_km_h as double,",
+						"          SpeedRadar_km_h as double,",
+						"          TempCoolant_C as short,",
+						"          PtoFront_rpm as boolean,",
+						"          PtoRear_rpm as boolean,",
 						"          GearShift as string,",
-						"          TempAmbient_C as string,",
-						"          ParkingBreakStatus as string,",
-						"          DifferentialLockStatus as string,",
+						"          TempAmbient_C as double,",
+						"          ParkingBreakStatus as boolean,",
+						"          DifferentialLockStatus as short,",
 						"          AllWheelDriveStatus as string,",
 						"          CreeperStatus as string",
 						"     ),",
@@ -492,7 +550,7 @@
 						"     limit: 1000,",
 						"     ignoreNoFilesFound: false,",
 						"     documentForm: 'documentPerLine') ~> srcFendtGps",
-						"telematicsOut, wialonOut, fendtOut union(byName: true)~> union1",
+						"telematicsOut, wialonOut, fendtOut union(byName: true)~> unionAllTelem",
 						"datas filter(/* type == \"EngineSpeed\" || type == \"FuelLevel\" || type == \"OutdoorTemp\" */\r",
 						"1 == 1) ~> filter1",
 						"srcfendt foldDown(unroll(datas),",
@@ -520,10 +578,6 @@
 						"     ),",
 						"     skipDuplicateMapInputs: false,",
 						"     skipDuplicateMapOutputs: false) ~> values",
-						"srcwialon cast(output(",
-						"          dateTime as timestamp",
-						"     ),",
-						"     errors: true) ~> cast1",
 						"values derive(DateTime = toTimestamp(toInteger(timestamp)*1000l)) ~> tstpDateTime",
 						"fendtDataNoGps pivot(groupBy(Timestamp,",
 						"          VehicleId,",
@@ -550,8 +604,7 @@
 						"     ),",
 						"     skipDuplicateMapInputs: false,",
 						"     skipDuplicateMapOutputs: false) ~> flattenRoute",
-						"cast2 select(mapColumn(",
-						"          Timestamp = DateTime,",
+						"derivedColumn1 select(mapColumn(",
 						"          VehicleId = SerialNumber,",
 						"          GpsLongitude,",
 						"          GpsLatitude,",
@@ -569,21 +622,18 @@
 						"          ParkingBreakStatus,",
 						"          DifferentialLockStatus,",
 						"          AllWheelDriveStatus,",
-						"          CreeperStatus",
+						"          CreeperStatus,",
+						"          Timestamp",
 						"     ),",
-						"     skipDuplicateMapInputs: true,",
-						"     skipDuplicateMapOutputs: true) ~> telematicsOut",
-						"srctelematics cast(output(",
-						"          DateTime as timestamp",
-						"     ),",
-						"     errors: true) ~> cast2",
+						"     skipDuplicateMapInputs: false,",
+						"     skipDuplicateMapOutputs: false) ~> telematicsOut",
 						"pivot1, fendtGpsOut join(VehicleId == machineId",
 						"     && timestamp_t == fendtGpsOut@timestamp,",
 						"     joinType:'left',",
 						"     matchType:'exact',",
 						"     ignoreSpaces: false,",
 						"     broadcast: 'auto')~> joinFendt",
-						"cast3 select(mapColumn(",
+						"flattenRoute select(mapColumn(",
 						"          machineId,",
 						"          timestamp,",
 						"          GpsLongitude = longitude,",
@@ -592,21 +642,18 @@
 						"     skipDuplicateMapInputs: true,",
 						"     skipDuplicateMapOutputs: true) ~> fendtGpsOut",
 						"joinFendt select(mapColumn(",
-						"          VehicleId,",
 						"          Timestamp = pivot1@Timestamp,",
+						"          VehicleId,",
+						"          machineId,",
+						"          timestamp = fendtGpsOut@timestamp,",
 						"          GpsLongitude,",
 						"          GpsLatitude",
 						"     ),",
 						"     skipDuplicateMapInputs: true,",
 						"     skipDuplicateMapOutputs: true) ~> fendtOut",
-						"flattenRoute cast(output(",
-						"          longitude as string,",
-						"          latitude as string",
-						"     ),",
-						"     errors: true) ~> cast3",
-						"cast1 select(mapColumn(",
+						"derivedColumn2 select(mapColumn(",
 						"          VehicleId = unit_id,",
-						"          Timestamp = dateTime,",
+						"          Timestamp,",
 						"          driverId,",
 						"          GpsLongitude = gpsLongitude,",
 						"          GpsLatitude = gpsLatitude,",
@@ -615,12 +662,24 @@
 						"          course",
 						"     ),",
 						"     skipDuplicateMapInputs: true,",
-						"     skipDuplicateMapOutputs: true) ~> wialonOut",
-						"union1 sink(allowSchemaDrift: true,",
+						"     skipDuplicateMapOutputs: true) ~> selectWialonInter",
+						"srctelematics derive(Timestamp = toTimestamp(DateTime)) ~> derivedColumn1",
+						"srcwialon derive(Timestamp = toTimestamp(dateTime)) ~> derivedColumn2",
+						"selectWialonInter cast(output(",
+						"          GpsLongitude as double,",
+						"          GpsLatitude as double",
+						"     ),",
+						"     errors: true) ~> wialonOut",
+						"unionAllTelem sink(allowSchemaDrift: true,",
 						"     validateSchema: false,",
-						"     format: 'parquet',",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'table',",
 						"     skipDuplicateMapInputs: true,",
-						"     skipDuplicateMapOutputs: true) ~> expparquet"
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError') ~> SQLDB"
 					]
 				}
 			},
@@ -629,7 +688,7 @@
 				"[concat(variables('factoryId'), '/datasets/fendt_data_partitioned')]",
 				"[concat(variables('factoryId'), '/datasets/wialon')]",
 				"[concat(variables('factoryId'), '/datasets/fendt_gps')]",
-				"[concat(variables('factoryId'), '/datasets/telem_combined')]"
+				"[concat(variables('factoryId'), '/datasets/ConsolidatedTable')]"
 			]
 		},
 		{
@@ -660,7 +719,7 @@
 									"srcfendt": {},
 									"srcwialon": {},
 									"srcFendtGps": {},
-									"expparquet": {}
+									"SQLDB": {}
 								}
 							},
 							"staging": {},
