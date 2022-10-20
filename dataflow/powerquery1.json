@@ -1,0 +1,20 @@
+{
+	"name": "powerquery1",
+	"properties": {
+		"type": "WranglingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"name": "telematics",
+					"script": "source(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~>  telematics",
+					"dataset": {
+						"referenceName": "telematics",
+						"type": "DatasetReference"
+					}
+				}
+			],
+			"script": "section Section1;\r\nshared telematics = let AdfDoc = AzureStorage.BlobContents(\"https://lgintest.blob.core.windows.net/lgineko/telematics_dump.csv\"),Csv = Csv.Document(AdfDoc, [Delimiter = \",\", Encoding = TextEncoding.Utf8, QuoteStyle = QuoteStyle.Csv]), PromotedHeaders = Table.PromoteHeaders(Csv, [PromoteAllScalars = true]) in  PromotedHeaders;\r\nshared UserQuery = let Source = #\"telematics\",\n    #\"Changed Type with Locale\" = Table.TransformColumnTypes(Source, {{\"GpsLongitude\", type number}, {\"GpsLatitude\", type number}}, \"en-US\"),\n    #\"Changed Type\" = Table.TransformColumnTypes(#\"Changed Type with Locale\",{{\"DateTime\", type text}, {\"SerialNumber\", type text}, {\"GpsLongitude\", type number}, {\"GpsLatitude\", type number}, {\"TotalWorkingHours\", Int64.Type}, {\"Engine_rpm\", Int64.Type}, {\"EngineLoad\", Int64.Type}, {\"FuelConsumption_l_h\", Int64.Type}, {\"SpeedGearbox_km_h\", Int64.Type}, {\"SpeedRadar_km_h\", Int64.Type}, {\"TempCoolant_C\", Int64.Type}, {\"PtoFront_rpm\", Int64.Type}, {\"PtoRear_rpm\", Int64.Type}, {\"GearShift\", type text}, {\"TempAmbient_C\", Int64.Type}, {\"ParkingBreakStatus\", Int64.Type}, {\"DifferentialLockStatus\", Int64.Type}, {\"AllWheelDriveStatus\", type text}, {\"CreeperStatus\", type text}}),\n    #\"Replaced Value\" = Table.ReplaceValue(#\"Changed Type\",\"UTC\",\"\",Replacer.ReplaceText,{\"DateTime\"}),\n    #\"Changed Type1\" = Table.TransformColumnTypes(#\"Replaced Value\",{{\"DateTime\", type datetime}}),\n    #\"Duplicated Column\" = Table.DuplicateColumn(#\"Changed Type1\", \"DateTime\", \"Date\"),\n    #\"Changed Type2\" = Table.TransformColumnTypes(#\"Duplicated Column\",{{\"Date\", type date}})\nin\n    #\"Changed Type2\";\r\n",
+			"documentLocale": "en-us"
+		}
+	}
+}
