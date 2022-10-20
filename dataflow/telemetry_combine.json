@@ -36,10 +36,10 @@
 			"sinks": [
 				{
 					"dataset": {
-						"referenceName": "telem_combined",
+						"referenceName": "AzureSqlTable1",
 						"type": "DatasetReference"
 					},
-					"name": "expparquet"
+					"name": "SQLDB"
 				}
 			],
 			"transformations": [
@@ -277,9 +277,14 @@
 				"     skipDuplicateMapOutputs: true) ~> wialonOut",
 				"union1 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
-				"     format: 'parquet',",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> expparquet"
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> SQLDB"
 			]
 		}
 	}
